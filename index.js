@@ -4,26 +4,27 @@ var fs = require('fs');
 var ejs = require('ejs');
 
 var defaultEjsOptions = {
-    delimiter: '%'
+    delimiter: '%',
+    compileDebug: true
 }
 
 /**
  * Creates in the destination new files based on the template and adds the input to the files with ejs
  * 
  * @param {object} options
- * @param {string} options.template (Required) Path to the template
- * @param {string} options.destinationDir (Required) Path to the destination folder
+ * @param {string} options.template (Required) Path to the template folder
+ * @param {string} options.destination (Required) Path to the destination folder
  * @param {object} options.input Data available in the template
  * @param {object} options.ejsOptions EJS options
  * @param {boolean} options.force Overwrite existing files
  */
 var hoppla = function(options) {
-    var destinationDir = options.destinationDir;
-    if (!path.isAbsolute(destinationDir)) {
-        destinationDir = path.resolve(destinationDir);
+    var destination = options.destination;
+    if (!path.isAbsolute(destination)) {
+        destination = path.resolve(destination);
     }
 
-    shell.mkdir('-p', destinationDir);
+    shell.mkdir('-p', destination);
 
     var template = options.template;
     if (!path.isAbsolute(template)) {
@@ -32,22 +33,23 @@ var hoppla = function(options) {
     var templateBasename = path.basename(template);
 
     if (!fs.existsSync(template)) {
-        throw "Template \”" + template + "\" doesnt exist"; 
+        throw `Template "${template}" doesnt exist`;
     }
 
     var ejsOptions = Object.assign({}, defaultEjsOptions);
     
     var sourceStats = fs.statSync(template);
     var templateIsDirectory = sourceStats.isDirectory();
-    if (templateIsDirectory) {
-        ejsOptions.root = template;
+    if (!templateIsDirectory) {
+        throw `Template "${template}" has to be a directory`
     }
+    ejsOptions.root = template;
 
     if (options.ejsOptions) {
         ejsOptions = Object.assign(ejsOptions, options.ejsOptions)
     }
 
-    var tmpDir = path.resolve(destinationDir, 'tmp-hoppla');
+    var tmpDir = path.resolve(destination, 'tmp-hoppla');
     shell.mkdir('-p', tmpDir)
 
     var templateTmp = path.resolve(tmpDir, templateBasename);
@@ -63,11 +65,15 @@ var hoppla = function(options) {
             targetOriginalName: template,
             ejsOptions
         });
-    
-        copyRecursive({
-            force: options.force,
-            source: templateTmp,
-            destination: destinationDir
+
+        var templateFiles = fs.readdirSync(templateTmp);
+        templateFiles.forEach((file) => {
+            var filePath = path.resolve(templateTmp, file);
+            copyRecursive({
+                force: options.force,
+                source: filePath,
+                destination: destination
+            });
         });
     }
     catch(err) {
@@ -79,7 +85,7 @@ var hoppla = function(options) {
 }
 module.exports = hoppla;
 
-const fileHeaderOptionsRegex = /^###hoppla((\s|\S)*)hoppla###(\s*\n)?/;
+const fileHeaderOptionsRegex = /^###hopplaconfig((\s|\S)*)hopplaconfig###(\s*\n)?/;
 
 var copyRecursive = function(options) {
     var force = !!options.force;
@@ -104,7 +110,7 @@ var copyRecursive = function(options) {
         })
     } else {
         if (!force && fs.existsSync(destinationAndSource)) {
-            console.warn('File already exists: "' + destinationAndSource + '"')
+            console.warn(`File already exists: "${destinationAndSource}"`)
             return;
         }
     
@@ -136,7 +142,7 @@ var applyTransformationRecursive = function(options) {
             }
             catch(err) {
                 var hopplaConfigOriginalPath = path.resolve(targetOriginalName, 'hopplaconfig');
-                console.error('JSON invalid at: ' + hopplaConfigOriginalPath);
+                console.error(`Hopplaconfig invalid in "${hopplaConfigOriginalPath}"`);
                 throw err;
             }
 
@@ -194,7 +200,7 @@ var applyTransformationRecursive = function(options) {
             }
             catch(err) {
                 var originalFileName = (originalFileNames[target])? originalFileNames[target]: targetOriginalName;
-                console.error('JSON invalid at: ' + originalFileName);
+                console.error(`Hopplaconfig invalid in "${originalFileName}"`);
                 throw err;
             }
             
