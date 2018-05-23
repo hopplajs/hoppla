@@ -11,19 +11,53 @@ var argv = require('yargs')
     })
     .argv
 
-var input = (argv.input)? JSON.parse(argv.input): null;
+var getInputFromPipe = function() {
+    return new Promise((resolve) => {
+        var input = '';
+        process.stdin.setEncoding('utf-8');
+        process.stdin.on('readable', () => {
+            var aInput
+            while(aInput = process.stdin.read()) {
+                input += aInput;
+            }
+        });
+        process.stdin.on('end', () => {
+            resolve(input);
+        });
+    });
+}
 
-try {
-    hoppla({
-        template: argv.template,
-        destination: argv.destination,
-        force: argv.force,
-        ejsOptions: {
-            delimiter: argv['ejs-delimiter']
-        },
-        input
+var startHoppla = function(input) {
+    try {
+        hoppla({
+            template: argv.template,
+            destination: argv.destination,
+            force: argv.force,
+            ejsOptions: {
+                delimiter: argv['ejs-delimiter']
+            },
+            input
+        })
+    }
+    catch(err) {
+        console.error(err);
+    }
+}
+
+var parseInput = function(input) {
+    return JSON.parse(input);
+}
+
+Promise.resolve()
+    .then(() => {
+        var input = argv.input;
+        if (input != null) {
+            if (input === '') {
+                return getInputFromPipe();
+            }
+        
+            return input;
+        }
     })
-}
-catch(err) {
-    console.error(err);
-}
+    .then(parseInput)
+    .then(startHoppla)
