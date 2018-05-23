@@ -58,12 +58,17 @@ var hoppla = function(options) {
     }
     shell.cp('-r', template, templateTmp)
 
+    var input = {
+        input: (options.input)? options.input: {}
+    };
+
     try {
         templateTmp = applyTransformationRecursive({ 
-            input: options.input,
+            input: input,
             target: templateTmp,
-            targetOriginalName: template,
-            ejsOptions
+            targetOriginal: template,
+            ejsOptions,
+            root: template
         });
 
         var templateFiles = fs.readdirSync(templateTmp);
@@ -85,7 +90,7 @@ var hoppla = function(options) {
 }
 module.exports = hoppla;
 
-const fileHeaderOptionsRegex = /^###hopplaconfig((\s|\S)*)hopplaconfig###(\s*\n)?/;
+const fileHeaderHopplaConfigRegex = /^###hopplaconfig((\s|\S)*)hopplaconfig###(\s*\n)?/;
 
 var copyRecursive = function(options) {
     var force = !!options.force;
@@ -123,106 +128,172 @@ const originalFileNames = {};
 var applyTransformationRecursive = function(options) {
     var input = options.input;
     var target = options.target;
-    var targetOriginalName = options.targetOriginalName;
+    var targetOriginal = options.targetOriginal;
     var targetOld;
-    var ejsOptions = options.ejsOptions;
+    var originalFileName = (originalFileNames[target])? originalFileNames[target]: targetOriginal;
 
     var targetStats = fs.statSync(target);
     var isDirectory = targetStats.isDirectory();
 
-    if (isDirectory) {
-        var ignore = false;
-        var hopplaConfigPath = path.resolve(target, 'hopplaconfig');
-        if (fs.existsSync(hopplaConfigPath)) {
-            var hopplaConfigContent = fs.readFileSync(hopplaConfigPath, 'utf8');
-            shell.rm(hopplaConfigPath);
-            hopplaConfigContent = ejs.render(hopplaConfigContent, input, ejsOptions);
-            try {
-                hopplaConfig = JSON.parse(hopplaConfigContent);
-            }
-            catch(err) {
-                var hopplaConfigOriginalPath = path.resolve(targetOriginalName, 'hopplaconfig');
-                console.error(`Hopplaconfig invalid in "${hopplaConfigOriginalPath}"`);
-                throw err;
-            }
-
-            if (hopplaConfig.dirName) {
-                targetOld = target;
-                target = path.resolve(target, '..', hopplaConfig.dirName);
-                shell.mv(targetOld, target);
-            }
-
-            if (hopplaConfig.fileNames) {
-                Object
-                    .keys(hopplaConfig.fileNames)
-                    .forEach((oldFileName) => {
-                        var newFileName = hopplaConfig.fileNames[oldFileName];
-                        var newFileName = path.resolve(target, newFileName);
-                        
-                        var originalFileName = path.resolve(targetOriginalName, oldFileName);
-                        originalFileNames[newFileName] = originalFileName;
-                        
-                        var oldFileName = path.resolve(target, oldFileName);
-                        shell.mv(oldFileName, newFileName);
-                    })
-            }
-
-            if (hopplaConfig.ignore) {
-                ignore = true;
-            }
+    var hopplaConfig = {};
+    if (options.hopplaConfig) {
+        var hopplaConfigContent = fs.readFileSync(options.hopplaConfig, 'utf8');
+        hopplaConfigContent = ejs.render(hopplaConfigContent, input, options.ejsOptions);
+        try {
+            hopplaConfig = JSON.parse(hopplaConfigContent);
         }
-
-        if (ignore) {
-            shell.rm('-r', target);
-        } else {
-            var children = fs.readdirSync(target);
-            children.forEach((fileName) => {
-                var filePath = path.resolve(target, fileName);
-                var fileOriginalPath = path.resolve(targetOriginalName, fileName);
-                applyTransformationRecursive({
-                    target: filePath,
-                    targetOriginalName: fileOriginalPath,
-                    ejsOptions,
-                    input
-                })
-            })
+        catch(err) {
+            console.error(`Hopplaconfig invalid in "${options.hopplaConfigOriginal}"`);
+            throw err;
         }
-    } else {
-        var fileContent = fs.readFileSync(target, 'utf8');
-        fileContent = ejs.render(fileContent, input, ejsOptions);
-        var fileHeaderOptions = fileContent.match(fileHeaderOptionsRegex);
+    }
+
+    var fileContent = '';
+
+    if (!isDirectory) {
+        fileContent = fs.readFileSync(target, 'utf8');
+        fileContent = ejs.render(fileContent, input, options.ejsOptions);
+        var fileHeaderHopplaConfig = fileContent.match(fileHeaderHopplaConfigRegex);
         var ignore = false;
-        if (fileHeaderOptions && fileHeaderOptions[1]) {
-            fileContent = fileContent.replace(fileHeaderOptionsRegex, '');
+        if (fileHeaderHopplaConfig && fileHeaderHopplaConfig[1]) {
+            fileContent = fileContent.replace(fileHeaderHopplaConfigRegex, '');
 
             try {
-                fileHeaderOptions = JSON.parse(fileHeaderOptions[1]);
+                fileHeaderHopplaConfig = JSON.parse(fileHeaderHopplaConfig[1]);
             }
             catch(err) {
-                var originalFileName = (originalFileNames[target])? originalFileNames[target]: targetOriginalName;
                 console.error(`Hopplaconfig invalid in "${originalFileName}"`);
                 throw err;
             }
             
-            if (fileHeaderOptions.fileName) {
-                var targetOld = target;
-                target = path.dirname(target);
-                target = path.resolve(target, fileHeaderOptions.fileName);
-                shell.rm(targetOld);
-            }
+            hopplaConfig = Object.assign({}, hopplaConfig, fileHeaderHopplaConfig);
+        }
+    }
 
-            if (fileHeaderOptions.ignore) {
-                ignore = true;
-            }
+    if (!options.ignoreGenerate && hopplaConfig.generate) {
+        var eval2 = eval;
+        try {
+            var generateFunction = eval2(`(function(hoppla) { ${hopplaConfig.generate} })`);
+        }
+        catch(err) {
+            console.error(`Hopplaconfig Generate in "${originalFileName}" could not be executed`);
+            throw err;
         }
 
-        if (ignore) {
-            if (fs.existsSync(target)) {
-                shell.rm(target);
-            }
+        var generateIndex = 0;
+        // TODO: separate these functions
+        var generateOptions = {
+            
+            require: (file) => {
+                var filePath = path.resolve(options.root, file)
+                return require(filePath);
+            },
+            generate: (mutatedInput) => {
+                generateIndex++;
+                var baseName = path.basename(target);
+                var parentDir = path.dirname(target);
+
+                var newTarget = path.resolve(parentDir, `${generateIndex}_hoppla_${baseName}`);
+                if (isDirectory) {
+                    shell.cp('-r', target, newTarget);
+                } else {
+                    shell.cp(target, newTarget);
+                }
+
+                var newInput = Object.assign({}, input);
+                newInput.input = mutatedInput;
+
+                var generateFileOptions = {
+                    target: newTarget,
+                    targetOriginal,
+                    hopplaConfig: options.hopplaConfig,
+                    hopplaConfigOriginal: options.hopplaConfigOriginal,
+                    ejsOptions: options.ejsOptions,
+                    input: newInput,
+                    ignoreGenerate: true,
+                    root: options.root
+                };
+                applyTransformationRecursive(generateFileOptions);
+            },
+            input: Object.assign({}, input.input)
+        };
+
+        try {
+            generateFunction(generateOptions);
+        }
+        catch(err) {
+            console.error(`Hopplaconfig Generate in "${originalFileName}" could not be executed`);
+            throw err;
+        }
+
+        hopplaConfig.ignore = true;
+    }
+
+    if (hopplaConfig.ignore) {
+        if (isDirectory) {
+            shell.rm('-r', target);
         } else {
-            fs.writeFileSync(target, fileContent);
+            shell.rm(target);
         }
+
+        return target;
+    }
+
+    if (hopplaConfig.fileName) {
+        var targetOld = target;
+        target = path.dirname(target);
+        target = path.resolve(target, hopplaConfig.fileName);
+        if (isDirectory) {
+            shell.mv(targetOld, target)
+        } else {
+            shell.rm(targetOld);
+        }
+    }
+
+    if (isDirectory) {
+        var children = fs.readdirSync(target);
+
+        // Get hopplaConfig file names
+        var hopplaConfigByFileName = {};
+        children = children.filter((hopplaConfigFileName) => {
+            if (hopplaConfigFileName.endsWith('.hopplaconfig')) {
+                var fileName = hopplaConfigFileName.replace('.hopplaconfig', '');
+                hopplaConfigByFileName[fileName] = hopplaConfigFileName;
+                return;
+            }
+
+            return true;
+        });
+
+        children.forEach((fileName) => {
+            var filePath = path.resolve(target, fileName);
+            var filePathOriginal = path.resolve(targetOriginal, fileName);
+
+            var hopplaConfigPath = hopplaConfigByFileName[fileName];
+            var hopplaConfigPathOriginal = hopplaConfigByFileName[fileName];
+            if (hopplaConfigPath) {
+                hopplaConfigPath = path.resolve(target, hopplaConfigPath);
+                hopplaConfigPathOriginal = path.resolve(targetOriginal, hopplaConfigPathOriginal);
+            }
+
+            applyTransformationRecursive({
+                target: filePath,
+                targetOriginal: filePathOriginal,
+                hopplaConfig: hopplaConfigPath,
+                hopplaConfigOriginal: hopplaConfigPathOriginal,
+                ejsOptions: options.ejsOptions,
+                input,
+                root: options.root
+            })
+        })
+
+        // Delete old hopplaConfig files
+        Object.values(hopplaConfigByFileName).forEach((hopplaConfigFileName) => {
+            var hopplaConfigFilePath = path.resolve(target, hopplaConfigFileName); 
+            shell.rm(hopplaConfigFilePath);
+        });
+    } else {
+        fs.writeFileSync(target, fileContent);
     }
 
     return target;
