@@ -1,33 +1,22 @@
 #!/usr/bin/env node
 
-var hoppla = require('./index.js');
-var argv = require('yargs')
+const Input = require('./lib/input.js');
+const hoppla = require('./index.js');
+const argv = require('yargs')
     .options({
         t: { alias: 'template', describe: 'Path to template folder', type: 'string', demandOption: true },
         d: { alias: 'destination', describe: 'Path to destination folder', type: 'string', default: '.' },
-        i: { alias: 'input', describe: 'JSON input data', type: 'string'},
+        i: { alias: 'input', describe: 'HJSON input data', type: 'string'},
         f: { alias: 'force', describe: 'Overwrites existing files', type: 'boolean' },
         'ed': { alias: 'ejs-delimiter', describe: 'Which EJS delimiter to use', type: 'string', default: '%'}
     })
     .argv
 
-var getInputFromPipe = function() {
-    return new Promise((resolve) => {
-        var input = '';
-        process.stdin.setEncoding('utf-8');
-        process.stdin.on('readable', () => {
-            var aInput
-            while(aInput = process.stdin.read()) {
-                input += aInput;
-            }
-        });
-        process.stdin.on('end', () => {
-            resolve(input);
-        });
-    });
-}
+const startHoppla = function(input) {
+    if (input === false) {
+        return;
+    }
 
-var startHoppla = function(input) {
     try {
         hoppla({
             template: argv.template,
@@ -44,20 +33,23 @@ var startHoppla = function(input) {
     }
 }
 
-var parseInput = function(input) {
-    return JSON.parse(input);
-}
-
 Promise.resolve()
     .then(() => {
         var input = argv.input;
         if (input != null) {
             if (input === '') {
-                return getInputFromPipe();
+                return Input.getFromStdin();
             }
         
             return input;
         }
+
+        return '{}'
     })
-    .then(parseInput)
+    .then(Input.parse)
+    .catch((err) => {
+        console.error('Input was not readable as HJSON')
+        console.error(err);
+        return false;
+    })
     .then(startHoppla)

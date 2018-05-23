@@ -2,6 +2,7 @@ var path = require('path');
 var shell = require('shelljs');
 var fs = require('fs');
 var ejs = require('ejs');
+const Input = require('./lib/input.js');
 
 var defaultEjsOptions = {
     delimiter: '%',
@@ -140,7 +141,7 @@ var applyTransformationRecursive = function(options) {
         var hopplaConfigContent = fs.readFileSync(options.hopplaConfig, 'utf8');
         hopplaConfigContent = ejs.render(hopplaConfigContent, input, options.ejsOptions);
         try {
-            hopplaConfig = JSON.parse(hopplaConfigContent);
+            hopplaConfig = Input.parse(hopplaConfigContent);
         }
         catch(err) {
             console.error(`Hopplaconfig invalid in "${options.hopplaConfigOriginal}"`);
@@ -159,7 +160,7 @@ var applyTransformationRecursive = function(options) {
             fileContent = fileContent.replace(fileHeaderHopplaConfigRegex, '');
 
             try {
-                fileHeaderHopplaConfig = JSON.parse(fileHeaderHopplaConfig[1]);
+                fileHeaderHopplaConfig = Input.parse(fileHeaderHopplaConfig[1]);
             }
             catch(err) {
                 console.error(`Hopplaconfig invalid in "${originalFileName}"`);
