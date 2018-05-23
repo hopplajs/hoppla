@@ -1,6 +1,6 @@
 {
   "name": "hoppla",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "EJS and JSON based scaffolding",
   "main": "index.js",
   "bin": {
