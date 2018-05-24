@@ -13,5 +13,14 @@ Options:
   --ed, --ejs-delimiter  Which EJS delimiter to use      [string] [default: "%"]
 ```
 
-Help and examples are coming ;)
-  
+## Installation
+`npm install hoppla`
+
+## Basics
+Hoppla is a tool to quickly set up new folder structures in your projects. The templates can be automated with EJS and JS. Instead of using complicated cli dialogs to provide data for your templates, the data can be directly provided by HJSON or JSON.
+
+The core of hoppla works similar to `cp -r`. It merges the template contents into the destination, will however by default not overwrite files. 
+
+Template `templates/example` content: `helloworld.txt`
+Example cli execution: `npx hoppla -t ./templates/example`
+Result: `./helloworld.txt`
