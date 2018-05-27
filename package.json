@@ -7,7 +7,8 @@
     "hoppla": "./cli.js"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "reformat": "prettier --write lib/**/*.js"
   },
   "repository": {
     "type": "git",
@@ -31,5 +32,8 @@
     "hjson": "^3.1.1",
     "shelljs": "^0.8.2",
     "yargs": "^11.0.0"
+  },
+  "devDependencies": {
+    "prettier": "^1.12.1"
   }
 }
