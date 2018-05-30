@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
-const Input = require('./lib/input.js');
-const hoppla = require('./index.js');
+const Input = require('./lib/config/input.js');
+const hoppla = require('./lib/hoppla.js');
 const argv = require('yargs')
     .options({
         t: { alias: 'template', describe: 'Path to template folder', type: 'string', demandOption: true },
