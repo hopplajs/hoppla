@@ -1,7 +1,7 @@
 {
   "name": "hoppla",
   "version": "0.2.0",
-  "description": "EJS and JSON based scaffolding",
+  "description": "EJS and HJSON based scaffolding",
   "main": "lib/hoppla.js",
   "bin": {
     "hoppla": "./cli.js"
