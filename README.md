@@ -90,7 +90,7 @@ Its content can look like this:
   raw: false,
   // Custom javascript (have a look at the specific chapter)
   generate: 'console.log(hoppla.input.userName); return hoppla.generate(hoppla.input);'
-} ###hopplaconfig
+} hopplaconfig###
 Hello <%= input.userName %>
 ```
 
