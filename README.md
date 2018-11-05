@@ -213,6 +213,10 @@ Only existing in the hoppla object of finalize. If hoppla somewhere throwed an e
 ```
 
 ## Changelog
+### 0.4.0 Bugfixes and extra logs
+- BUGFIX b795cf9: Fix hopplaconfig always has to exist
+- FEATURE a91046d: Added extra log infos
+- BUGFIX f923a28: Fix file-exist check uses wrong path
 ### 0.3.1 README improvements
 ### 0.3.0 Promises, Errorhandling, LongStackTraces,
 ### 0.2.0 Input piping, HSJON support, config standardization, Generate option
