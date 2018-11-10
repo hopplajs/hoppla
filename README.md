@@ -63,6 +63,8 @@ You can add a file with the name `hopplaconfig` to the root of your template. Th
   }
 
   // Files and folders matching these globs will not be copied to the destination
+  // Keep in mind: this gets checked before the files will be renamed (in case there is a hopplaconfig fileName).
+  // Think it like this: if you have an excluded file, its hopplaconfig is ignored too!
   excludeGlobs: [ '**/tmp', 'TODOS.md' ] 
 
   // Files matching these globs will not be parsed with EJS
@@ -84,7 +86,7 @@ Its content can look like this:
 ###hopplaconfig {
   // Use a custom filename
   fileName: 'hello.<%= input.userName %>.txt',
-  // Dont copy file to destination
+  // Can be set to "true" and the file will not be copied to the destination
   exclude: false,
   // Copy file as is / not EJS output
   raw: false,
