@@ -215,6 +215,9 @@ Only existing in the hoppla object of finalize. If hoppla somewhere throwed an e
 ```
 
 ## Changelog
+### 0.5.0 Bugfixes, better error logs and performance improvements
+- FEATURE ff5e0b0: Copy raw directories without custom handler, remove tmp with force (copied only read files, could not be removed otherwise)
+- FEATURE e525485: Early exclude files, dont show stacktrace for ejs and special cases
 ### 0.4.0 Bugfixes and extra logs
 - BUGFIX b795cf9: Fix hopplaconfig always has to exist
 - FEATURE a91046d: Added extra log infos
