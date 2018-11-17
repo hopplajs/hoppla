@@ -206,7 +206,7 @@ Use this to require other javascript files from your template. The path is relat
 ```
 
 #### hoppla.error
-Only existing in the hoppla object of finalize. If hoppla somewhere throwed an error, it will be accessible in `hoppla.error`. This allows you to add sensible logic to your custom javascript:
+Only exists in the hoppla object of finalize. If hoppla somewhere throwed an error, it will be accessible in `hoppla.error`. This allows you to add sensible logic to your custom javascript:
 
 ```js
 {
@@ -214,16 +214,53 @@ Only existing in the hoppla object of finalize. If hoppla somewhere throwed an e
 }
 ```
 
+#### hoppla.call
+Only exists in the hoppla object of prepare/finalize. Use this to call separate hoppla-js processes. Check out the "Call hoppla from javascript" chapter for more details.
+
+## Call hoppla from javascript
+Instead of using the cli for hoppla, you also can instead require and call it with javascript like in this example:
+
+```js
+const hoppla = require('hoppla');
+Promise.resolve()
+  .then(() => {
+    return hoppla({
+      input: {
+        userName: 'john'
+      },
+      template: 'folder/to/template',
+      destination: 'folder/to/destination'
+      // force: true,
+      // ejsOptions: { customEjsOptions... }
+    })
+  })
+  .then(() => {
+    // hoppla is done
+  })
+```
+
 ## Changelog
-### 0.5.0 Bugfixes, better error logs and performance improvements
+### 0.6.0
+- Documented javascript usage
+- Fixed error if no ejs option was provided with js "hoppla"-function
+- Added "call" function to the prepare/finalize hoppla object
+### 0.5.0
+Bugfixes, better error logs and performance improvements
+
 - FEATURE ff5e0b0: Copy raw directories without custom handler, remove tmp with force (copied only read files, could not be removed otherwise)
 - FEATURE e525485: Early exclude files, dont show stacktrace for ejs and special cases
-### 0.4.0 Bugfixes and extra logs
+### 0.4.0
+Bugfixes and extra logs
 - BUGFIX b795cf9: Fix hopplaconfig always has to exist
 - FEATURE a91046d: Added extra log infos
 - BUGFIX f923a28: Fix file-exist check uses wrong path
-### 0.3.1 README improvements
-### 0.3.0 Promises, Errorhandling, LongStackTraces,
-### 0.2.0 Input piping, HSJON support, config standardization, Generate option
-### 0.1.0 Refactorings, config changes, Corrected destination merge logic
-### 0.0.1 Initial release
+### 0.3.1
+README improvements
+### 0.3.0
+Promises, Errorhandling, LongStackTraces,
+### 0.2.0
+Input piping, HSJON support, config standardization, Generate option
+### 0.1.0
+Refactorings, config changes, Corrected destination merge logic
+### 0.0.1
+Initial release
