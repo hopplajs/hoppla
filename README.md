@@ -240,6 +240,8 @@ Promise.resolve()
 ```
 
 ## Changelog
+### 0.7.0
+- Better folder renaming logic (fileName): if multiple folders use the same fileName their children will be merged together
 ### 0.6.0
 - Documented javascript usage
 - Fixed error if no ejs option was provided with js "hoppla"-function
