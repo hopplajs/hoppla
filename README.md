@@ -35,9 +35,10 @@ The core of hoppla works similar to `cp -r`. It merges the template contents int
 
 ## EJS / input
 
-By default all files will be parsed with EJS, use template-wide rawGlobs or the raw option per file to disable EJS parsing. The data specified in the input cli option will be used as EJS data and therefore can be accessed in the template files.
+By default all files suffixed with `.hop.ejs` will be parsed with EJS. Other files will be copied as is.
+The data specified in the input cli option will be used as EJS data and therefore can be accessed in the template files.
 
-Example content of `templates/example/helloworld.txt`:
+Example content of `templates/example/helloworld.txt.hop.ejs`:
 ```ejs
 Hello <%= input.userName %>
 
@@ -45,6 +46,8 @@ Hello <%= input.userName %>
   Sorry but you are too young.
 <% } %>
 ```
+
+This file will be scaffolded with the name `helloworld.txt` (hoppla removes the `.hop.ejs` suffix).
 
 ## Anatomy of a template
 A template is just a folder with content that will be copied recursively to a destination.
@@ -68,6 +71,7 @@ You can add a file with the name `hopplaconfig` to the root of your template. Th
   excludeGlobs: [ '**/tmp', 'TODOS.md' ] 
 
   // Files matching these globs will not be parsed with EJS
+  // By default only files suffixed with ".hop.ejs" are parsed with EJS!
   rawGlobs: [ '**/*.png', '**/*.zip' ]
 
   // Custom javascript which will be executed at the start of hoppla, before the template files will be copied from the tmp directory to the destination 
@@ -79,7 +83,7 @@ You can add a file with the name `hopplaconfig` to the root of your template. Th
 ```
 
 ### local inline per file
-Coming back to the helloworld.txt file from the Basics chapter.
+Coming back to the helloworld.txt.hop.ejs file from the Basics chapter.
 Its content can look like this:
 
 ```
@@ -99,7 +103,7 @@ Hello <%= input.userName %>
 The ###hopplaconfig hopplaconfig### block is not included in the destination output.
 
 ### local separate config per file
-Every file in the template accepts a second file with the name `filename.hopplaconfig`. `filename` is the filename of the file to configure. 
+Every file in the template accepts a second file with the name `filename.hopplaconfig`. `filename` is the filename of the file to configure (without the `.hop.ejs` suffix). So the hopplaconfig filename for our example `helloworld.txt.hop.ejs` is `helloworld.txt.hopplaconfig`
 
 This is espacially useful for folders and binary files which cannot be configured inline.
 
@@ -240,8 +244,13 @@ Promise.resolve()
 ```
 
 ## Changelog
+### 0.8.0
+Improved defaults for ejs processing
+- Only hopplaconfig's and files suffixed with `.hop.ejs` will be processed with ejs
+- For *.hop.ejs the hopplaconfig filename doesnt need the `.hop.ejs` suffix
+  - Example: Target file: `app.js.hop.ejs` -> hopplaconfig for target file: `app.js.hopplaconfig`
 ### 0.7.0
-- Better folder renaming logic (fileName): if multiple folders use the same fileName their children will be merged together
+Better folder renaming logic (fileName): if multiple folders use the same fileName their children will be merged together
 ### 0.6.0
 - Documented javascript usage
 - Fixed error if no ejs option was provided with js "hoppla"-function
