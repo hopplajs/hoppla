@@ -88,13 +88,17 @@ Its content can look like this:
 
 ```
 ###hopplaconfig {
-  // Use a custom filename
+  // Create the file in the destination with a custom filename.
+  // The string will be joined with the parent folder name before interpretation, making it viable
+  // for various tricks like:
+  // '.' (a folder would in this case copy its contents into its parent)
+  // 'newFolderX/newFolderY/hello.txt' (the file would be copied into the completely new folders newFolderX/newFolderY)
   fileName: 'hello.<%= input.userName %>.txt',
   // Can be set to "true" and the file will not be copied to the destination
   exclude: false,
   // Copy file as is / not EJS output
   raw: false,
-  // Custom javascript (have a look at the specific chapter)
+  // Custom javascript hook (have a look at the specific chapter)
   generate: 'console.log(hoppla.input.userName); return hoppla.generate(hoppla.input);'
 } hopplaconfig###
 Hello <%= input.userName %>
@@ -144,12 +148,21 @@ Customize the template with javascript at the start and end of the hoppla proces
 ```
 
 ### generate
-Use this to execute custom javascript for a specific file:
+This is a hook where you can add file specific javascript. In the js context is a hoppla object with a generate function.
+Everytime this generate function is called, it will create a copy of the file (counter.txt in the example) and interpret 
+the new copy  with the input you specified as the first argument of hoppla.generate.
+Only the generated copies will be finally copied to the destination!
+
+This allows you to not only add extra input variables from js for a single file but also to generate 
+multiple copies of the file with new file names.
+
+Example:
 
 counter.txt:
 ```
 ###hopplaconfig {
   fileName: 'count.<%= input.count %>.txt'
+  // Always return the promise from hoppla.generate!
   generate: 'return hoppla.require('tpl-helpers/hello.js')(hoppla)'
 } ###hopplaconfig
 Counting <%= input.count %>
@@ -174,7 +187,7 @@ module.exports = function(hoppla) {
       input.count = i;
       // Creates a temporary copy of counter.txt which will be parsed with the new input
       // The copy will NOT recursively interpret the generate =)
-      // hoppla.generate as asynchronous and returns a Promise!
+      // hoppla.generate is asynchronous and returns a Promise!
       return hoppla.generate(input);  
     })
   }
@@ -244,6 +257,11 @@ Promise.resolve()
 ```
 
 ## Changelog
+### 0.9.0
+- Fixed raw directory override: Raw directories will now replace old ones instead of merging
+- Fixed files that should replace folders in the destination moved into the destination instead
+- Added mkdir -p to the fileName option, so the option now even can be used to use file names like "newFolder/myFileName"
+- Upgraded dependencies: hjson, shelljs, yaku, yargs and prettier
 ### 0.8.0
 Improved defaults for ejs processing
 - Only hopplaconfig's and files suffixed with `.hop.ejs` will be processed with ejs
