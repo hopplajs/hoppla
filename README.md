@@ -257,6 +257,9 @@ Promise.resolve()
 ```
 
 ## Changelog
+### 0.9.1
+Fixed console warning, when copying and merging empty directories without files
+
 ### 0.9.0
 - Fixed raw directory override: Raw directories will now replace old ones instead of merging
 - Fixed files that should replace folders in the destination moved into the destination instead
