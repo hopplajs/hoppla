@@ -4,7 +4,7 @@ EJS and HJSON based scaffolding. A simple tool and library to automate the proce
 Summary:
 * Works similar to `cp -r`
 * No overwrite by default
-* All files parsed with EJS
+* Files suffixed with `.hop.ejs` parsed by EJS
 * Directly access JSON/HJSON Data in the files
 * No cli modal boilerplate
 * Customize with own javascript
