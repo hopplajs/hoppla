@@ -1,4 +1,7 @@
 ## Changelog
+### 0.10.1
+- BUGFIX: Dont follow symlinks, copy them as is
+
 ### 0.10.0
 - Moved changelog into CHANGELOG.md file
 - FEATURE: File permissions will now be preserved for hop.ejs files and directories
