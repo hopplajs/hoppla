@@ -1,4 +1,10 @@
 ## Changelog
+
+### 0.11.0
+- FEATURE: The file copy process should consider dot files
+- FEATURE: Each hoppla process should use an unique identifier for its tmp directory. This makes sure that parallel hoppla processes with the same destination can run without side effects
+- FEATURE: Updated dependencies: ejs, hjson, micromatch, prettier
+
 ### 0.10.1
 - BUGFIX: Dont follow symlinks, copy them as is
 
