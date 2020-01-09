@@ -1,5 +1,8 @@
 ## Changelog
 
+### 0.12.0
+- FEATURE: Implemented new "init" config, a callback that is called after the tmp directory is created (and still is empty)
+
 ### 0.11.1
 - FEATURE: Cleanup recursive copy processes, removed redundant code
 
