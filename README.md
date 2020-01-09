@@ -74,8 +74,11 @@ You can add a file with the name `hopplaconfig` to the root of your template. Th
   // By default only files suffixed with ".hop.ejs" are parsed with EJS!
   rawGlobs: [ '**/*.png', '**/*.zip' ]
 
-  // Custom javascript which will be executed at the start of hoppla, before the template files will be copied from the tmp directory to the destination 
-  prepare: 'console.log("Hello world")'
+  // Custom javascript which will be executed at the start of hoppla, after the tmp directory is created and still empty
+  init: 'console.log("Hello world")'
+
+  // Custom javascript which will be executed, before the template files are copied from the tmp directory to the destination
+  prepare: 'console.log("How are you?")'
 
   // Custom javascript which will be executed at the end of hoppla, after the template files are copied to the destination
   finalize: 'console.log("Goodby")'
