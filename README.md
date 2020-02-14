@@ -241,7 +241,7 @@ Only exists in the hoppla object of prepare/finalize. Use this to call separate 
 Instead of using the cli for hoppla, you also can instead require and call it with javascript like in this example:
 
 ```js
-const hoppla = require('hoppla');
+const { hoppla } = require('hoppla');
 Promise.resolve()
   .then(() => {
     return hoppla({
@@ -257,4 +257,21 @@ Promise.resolve()
   .then(() => {
     // hoppla is done
   })
+```
+
+## Manually use hoppla's recursive directory copy method
+You can use copyRecursive, to recursive merge two directories together. Files only existing in the destination will be kept there.
+
+```js
+const path = require('path');
+const { copyRecursive } = require('hoppla');
+
+// Merges proj/your-src-dir into proj/your-dest-dir
+copyRecursive({
+  source: path.join(__dirname, 'your-src-dir'),
+  destination: path.join(__dirname, 'your-dest-dir'),
+  force: true, // overwrite files, default: false
+  silent: true, // only output errors, default: false
+  baseDir: '/' // logs are relative to this dir, default: your-dest-dir/..
+})
 ```

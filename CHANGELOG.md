@@ -1,5 +1,18 @@
 ## Changelog
 
+### 0.13.0
+
+**BREAKING**: If you used hoppla's js api, you have to update your require statement:
+
+```js
+// Old require:
+const hoppla = require('hoppla')
+// New require:
+const { hoppla } = require'hoppla')
+```
+
+- FEATURE: Added public `copyRecursive` js api
+
 ### 0.12.0
 - FEATURE: Implemented new "init" config, a callback that is called after the tmp directory is created (and still is empty)
 
