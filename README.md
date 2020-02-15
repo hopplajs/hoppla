@@ -272,6 +272,9 @@ copyRecursive({
   destination: path.join(__dirname, 'your-dest-dir'),
   force: true, // overwrite files, default: false
   silent: true, // only output errors, default: false
-  baseDir: '/' // logs are relative to this dir, default: your-dest-dir/..
+  baseDir: '/', // logs are relative to this dir, default: your-dest-dir/..
+  exclude: [
+    '**/.git'
+  ]
 })
 ```

@@ -1,5 +1,8 @@
 ## Changelog
 
+### 0.14.0
+- FEATURE: Added `exclude` param to `copyRecursive`
+
 ### 0.13.0
 
 **BREAKING**: If you used hoppla's js api, you have to update your require statement:
